@@ -1,7 +1,6 @@
 import requests
 import pandas as pd
 import click
-from datetime import datetime
 
 # Function to download food truck data
 def download_food_truck_data(url, output_file):
@@ -26,37 +25,6 @@ def load_and_clean_data(file_path):
     df = df[~df['Status'].isin(['SUSPENDED', 'EXPIRED'])]
     return df
 
-# Function to check if a food truck is open now
-def is_open_now(dayshours):
-    """
-    Checks if a food truck is open now based on the dayshours column.
-    """
-    if not dayshours:
-        return False
-
-    # Get current day and time
-    now = datetime.now()
-    current_day = now.strftime("%a").upper()
-    current_time = now.time()
-
-    # Split dayshours into individual periods
-    for period in dayshours.split(';'):
-        day_hours = period.split('/')
-        if len(day_hours) != 2:
-            continue
-        
-        days, hours = day_hours
-        if current_day in days:
-            # Split hours into start and end times
-            start_time_str, end_time_str = hours.split('-')
-            start_time = datetime.strptime(start_time_str, "%I%p").time()
-            end_time = datetime.strptime(end_time_str, "%I%p").time()
-            # Check if current time is within the start and end times
-            if start_time <= current_time <= end_time:
-                return True
-
-    return False
-
 # Click CLI setup
 @click.group()
 def cli():
@@ -66,10 +34,9 @@ def cli():
 @cli.command()
 @click.option('--cuisine', help='Filter by type of cuisine')
 @click.option('--facility-type', help='Filter by facility type (e.g., Truck, Push Cart)')
-@click.option('--open-now', is_flag=True, help='Show food trucks open now')
-def list_trucks(cuisine, facility_type, open_now):
+def list_trucks(cuisine, facility_type):
     """
-    List food trucks based on optional filters: cuisine, facility type, and whether they are open now.
+    List food trucks based on optional filters: cuisine and facility type.
     """
     # Load data globally to use in all commands
     df = load_and_clean_data("food_trucks.csv")
@@ -81,10 +48,7 @@ def list_trucks(cuisine, facility_type, open_now):
     # Filter by facility type if provided
     if facility_type:
         result = result[result['FacilityType'].str.contains(facility_type, case=False, na=False)]
-    # Filter by whether the food truck is open now if the flag is set
-    if open_now:
-        result = result[result['dayshours'].apply(is_open_now)]
-
+    
     click.echo(result[['Applicant', 'FoodItems', 'Address']])
 
 @cli.command()
