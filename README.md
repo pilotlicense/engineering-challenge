@@ -17,10 +17,6 @@ Filter food trucks by facility type (e.g., Truck, Push Cart):
 ```python
 python food_truck_tool.py list-trucks --facility-type "Truck"
 ```
-Show food trucks open now:
-```python
-python food_truck_tool.py list-trucks --open-now
-```
 Combine filters for cuisine and facility type:
 ```python
 python food_truck_tool.py list-trucks --cuisine "Tacos" --facility-type "Truck" --open-now
